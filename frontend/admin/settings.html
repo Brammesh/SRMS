@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Settings — SRMS Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Styling for Password Strength meter */
+    .strength-meter {
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .strength-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .strength-text {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div><div class="logo-text">SRMS</div><div class="logo-sub">Result Management</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+        <a href="/admin/students.html" class="nav-item" data-page="students.html"><span class="nav-icon">👥</span> Students</a>
+        <a href="/admin/results.html" class="nav-item" data-page="results.html"><span class="nav-icon">📝</span> Results</a>
+        <a href="/admin/reports.html" class="nav-item" data-page="reports.html"><span class="nav-icon">📋</span> Reports</a>
+        <div class="nav-section-label">Management</div>
+        <a href="/admin/staff.html" class="nav-item" data-page="staff.html" data-admin-only><span class="nav-icon">👤</span> Staff</a>
+        <a href="/admin/subjects.html" class="nav-item" data-page="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+        <div class="nav-section-label">Settings</div>
+        <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">admin</div></div>
+          <button onclick="logout()" style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;padding:4px;">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">Account Settings</div>
+      </header>
+
+      <div class="content-area" style="max-width: 800px;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Profile & Security</h1>
+            <p class="page-subtitle">Configure your personal profile details and update account passwords</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 class="card-title">Profile Information</h2>
+          <form id="profile-form" onsubmit="saveProfile(event)">
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label for="prof-uname">Username</label>
+                <input type="text" id="prof-uname" class="form-control" placeholder="username" required />
+              </div>
+              <div class="form-group">
+                <label for="prof-email">Email Address</label>
+                <input type="email" id="prof-email" class="form-control" placeholder="email@domain.com" />
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-primary" type="submit" id="btn-save-prof">Save Profile</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Security & Password</h2>
+          <form id="password-form" onsubmit="changePassword(event)">
+            <div class="form-group">
+              <label for="pass-curr">Current Password *</label>
+              <input type="password" id="pass-curr" class="form-control" placeholder="Enter current password" required />
+            </div>
+            <div class="form-row cols-2">
+              <div class="form-group">
+                <label for="pass-new">New Password *</label>
+                <input type="password" id="pass-new" class="form-control" placeholder="Minimum 6 characters" required oninput="checkPasswordStrength(this.value)" />
+                <div class="strength-meter" id="strength-meter">
+                  <div class="strength-bar" id="strength-bar"></div>
+                </div>
+                <div class="strength-text" id="strength-text"></div>
+              </div>
+              <div class="form-group">
+                <label for="pass-conf">Confirm New Password *</label>
+                <input type="password" id="pass-conf" class="form-control" placeholder="Confirm new password" required />
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-primary" type="submit" id="btn-change-pass">Change Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin/app.js"></script>
+  <script src="/js/admin/settings.js"></script>
+</body>
+</html>

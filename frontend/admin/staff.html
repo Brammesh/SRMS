@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Management — SRMS Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div><div class="logo-text">SRMS</div><div class="logo-sub">Result Management</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+        <a href="/admin/students.html" class="nav-item" data-page="students.html"><span class="nav-icon">👥</span> Students</a>
+        <a href="/admin/results.html" class="nav-item" data-page="results.html"><span class="nav-icon">📝</span> Results</a>
+        <a href="/admin/reports.html" class="nav-item" data-page="reports.html"><span class="nav-icon">📋</span> Reports</a>
+        <div class="nav-section-label">Management</div>
+        <a href="/admin/staff.html" class="nav-item" data-page="staff.html" data-admin-only><span class="nav-icon">👤</span> Staff</a>
+        <a href="/admin/subjects.html" class="nav-item" data-page="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+        <div class="nav-section-label">Settings</div>
+        <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">admin</div></div>
+          <button onclick="logout()" style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;padding:4px;">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">Staff Management</div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openAddModal()">➕ Add Staff Member</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Staff Records</h1>
+            <p class="page-subtitle">Add, edit, deactivate, and manage institutional staff accounts</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="form-control" id="search-staff" placeholder="Search by name, ID, username, email..." oninput="loadStaffs()" style="max-width: 320px;" />
+          <select class="form-control" id="f-dept" onchange="loadStaffs()">
+            <option value="">All Departments</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="MECH">MECH</option>
+            <option value="CIVIL">CIVIL</option>
+          </select>
+          <span class="text-sm text-muted" id="staff-count" style="margin-left: auto;"></span>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div id="staff-loading" class="loading-overlay"><div class="spinner"></div> Loading staff...</div>
+          <div class="table-container" id="staff-table-wrap" style="display:none;">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Staff ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Dept</th>
+                  <th>Designation</th>
+                  <th>Username</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="staff-tbody"></tbody>
+            </table>
+          </div>
+          <div id="staff-empty" class="empty-state" style="display:none;">
+            <div class="empty-icon">👤</div>
+            <h3>No staff members found</h3>
+            <p>Add staff accounts to get started</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Staff Modal -->
+  <div class="modal-overlay hidden" id="staff-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="staff-modal-title">Add Staff Member</h3>
+        <button class="btn-close" onclick="closeModal('staff-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="staff-form">
+          <input type="hidden" id="edit-staff-id" />
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="staff-code">Staff ID *</label>
+              <input type="text" id="staff-code" class="form-control" placeholder="e.g. STF003" required />
+            </div>
+            <div class="form-group">
+              <label for="staff-name">Name *</label>
+              <input type="text" id="staff-name" class="form-control" placeholder="e.g. Dr. John Doe" required />
+            </div>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="staff-email">Email Address *</label>
+              <input type="email" id="staff-email" class="form-control" placeholder="e.g. john@srms.edu" required />
+            </div>
+            <div class="form-group">
+              <label for="staff-phone">Phone Number</label>
+              <input type="text" id="staff-phone" class="form-control" placeholder="e.g. 9876543210" />
+            </div>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="staff-dept">Department *</label>
+              <select id="staff-dept" class="form-control" required>
+                <option value="">Select Department</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">MECH</option>
+                <option value="CIVIL">CIVIL</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="staff-desg">Designation *</label>
+              <input type="text" id="staff-desg" class="form-control" placeholder="e.g. Assistant Professor" required />
+            </div>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="staff-uname">Username *</label>
+              <input type="text" id="staff-uname" class="form-control" placeholder="e.g. john.doe" required />
+            </div>
+            <div class="form-group" id="pass-group">
+              <label for="staff-pass">Password *</label>
+              <input type="password" id="staff-pass" class="form-control" placeholder="Min 6 characters" required />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('staff-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-staff-btn" onclick="saveStaff()">💾 Save Staff</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div class="modal-overlay hidden" id="reset-password-modal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Reset Password</h3>
+        <button class="btn-close" onclick="closeModal('reset-password-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reset-staff-target-id" />
+        <div class="form-group">
+          <label for="reset-pass-val">New Password *</label>
+          <input type="password" id="reset-pass-val" class="form-control" placeholder="Min 6 characters" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('reset-password-modal')">Cancel</button>
+        <button class="btn btn-primary" id="reset-pass-btn" onclick="resetPasswordAction()">Reset Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay hidden" id="confirm-modal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Confirm Action</h3>
+        <button class="btn-close" onclick="closeModal('confirm-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-msg"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="confirm-no">Cancel</button>
+        <button class="btn btn-danger" id="confirm-yes">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin/app.js"></script>
+  <script src="/js/admin/staff.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports — SRMS Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .report-header { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    .class-result-row { display:grid; grid-template-columns:40px 1fr 90px 80px 90px 90px 80px; gap:8px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border); }
+    .class-result-row:hover { background:var(--bg-hover); }
+    .class-result-row.header { background:var(--bg-hover); font-size:.72rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.07em; }
+    .cgpa-badge { font-size:.85rem; font-weight:700; padding:3px 10px; border-radius:999px; background:var(--accent-glow); color:var(--accent); }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div><div class="logo-text">SRMS</div><div class="logo-sub">Result Management</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+        <a href="/admin/students.html" class="nav-item" data-page="students.html"><span class="nav-icon">👥</span> Students</a>
+        <a href="/admin/results.html" class="nav-item" data-page="results.html"><span class="nav-icon">📝</span> Results</a>
+        <a href="/admin/reports.html" class="nav-item" data-page="reports.html"><span class="nav-icon">📋</span> Reports</a>
+        <div class="nav-section-label">Management</div>
+        <a href="/admin/staff.html" class="nav-item" data-page="staff.html" data-admin-only><span class="nav-icon">👤</span> Staff</a>
+        <a href="/admin/subjects.html" class="nav-item" data-page="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+        <div class="nav-section-label">Settings</div>
+        <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">admin</div></div>
+          <button onclick="logout()" style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;padding:4px;">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">Reports</div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <div><h1 class="page-title">Class Reports</h1><p class="page-subtitle">View and export results by class</p></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar" style="margin-bottom:24px;">
+          <select class="form-control" id="r-dept">
+            <option value="">Department</option>
+            <option value="CSE">CSE</option><option value="ECE">ECE</option>
+            <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+          </select>
+          <select class="form-control" id="r-sem">
+            <option value="">Semester</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option>
+          </select>
+          <input type="text" class="form-control" id="r-year" placeholder="Academic Year e.g. 2024-25" value="2024-25" style="max-width:200px;" />
+          <button class="btn btn-primary" id="load-report-btn" onclick="loadReport()">📊 Generate Report</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="report-header hidden" id="report-summary">
+          <div class="stat-card"><div class="stat-icon">👥</div><div><div class="stat-value" id="rpt-total">0</div><div class="stat-label">Students</div></div></div>
+          <div class="stat-card success"><div class="stat-icon">✅</div><div><div class="stat-value" id="rpt-pass">0</div><div class="stat-label">All Pass</div></div></div>
+          <div class="stat-card danger"><div class="stat-icon">❌</div><div><div class="stat-value" id="rpt-fail">0</div><div class="stat-label">Has Fail</div></div></div>
+          <div class="stat-card"><div class="stat-icon">📈</div><div><div class="stat-value" id="rpt-avgcgpa">—</div><div class="stat-label">Avg CGPA</div></div></div>
+        </div>
+
+        <!-- Table -->
+        <div class="card" style="padding:0;overflow:hidden;" id="report-card">
+          <div id="report-loading" class="loading-overlay hidden"><div class="spinner"></div> Generating...</div>
+          <div id="report-empty" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h3>Select Filters</h3>
+            <p>Choose a department, semester, and year to generate report</p>
+          </div>
+          <div id="report-table-wrap" class="hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);">
+              <h3 id="report-title" style="margin:0;"></h3>
+              <button class="btn btn-secondary btn-sm" onclick="printReport()">🖨 Print</button>
+            </div>
+            <div class="class-result-row header">
+              <div>#</div><div>Student</div>
+              <div style="text-align:center;">Roll No.</div>
+              <div style="text-align:center;">Subjects</div>
+              <div style="text-align:center;">CGPA</div>
+              <div style="text-align:center;">Result</div>
+              <div style="text-align:center;">PDF</div>
+            </div>
+            <div id="report-rows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin/app.js"></script>
+  <script src="/js/admin/reports.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subjects — SRMS Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div><div class="logo-text">SRMS</div><div class="logo-sub">Result Management</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+        <a href="/admin/students.html" class="nav-item" data-page="students.html"><span class="nav-icon">👥</span> Students</a>
+        <a href="/admin/results.html" class="nav-item" data-page="results.html"><span class="nav-icon">📝</span> Results</a>
+        <a href="/admin/reports.html" class="nav-item" data-page="reports.html"><span class="nav-icon">📋</span> Reports</a>
+        <div class="nav-section-label">Management</div>
+        <a href="/admin/staff.html" class="nav-item" data-page="staff.html" data-admin-only><span class="nav-icon">👤</span> Staff</a>
+        <a href="/admin/subjects.html" class="nav-item" data-page="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+        <div class="nav-section-label">Settings</div>
+        <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><span class="nav-icon">⚙️</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">admin</div></div>
+          <button onclick="logout()" style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;padding:4px;">🚪</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">Subjects</div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openAddModal()">➕ Add Subject</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <div><h1 class="page-title">Subject Management</h1><p class="page-subtitle">Manage course subjects and their settings</p></div>
+        </div>
+
+        <div class="filter-bar">
+          <select class="form-control" id="f-dept" onchange="loadSubjects()">
+            <option value="">All Departments</option>
+            <option value="CSE">CSE</option><option value="ECE">ECE</option>
+            <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+          </select>
+          <select class="form-control" id="f-sem" onchange="loadSubjects()">
+            <option value="">All Semesters</option>
+            <option value="1">Sem 1</option><option value="2">Sem 2</option>
+            <option value="3">Sem 3</option><option value="4">Sem 4</option>
+            <option value="5">Sem 5</option><option value="6">Sem 6</option>
+            <option value="7">Sem 7</option><option value="8">Sem 8</option>
+          </select>
+          <span class="text-sm text-muted" id="subj-count" style="margin-left:auto;"></span>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div id="subj-loading" class="loading-overlay"><div class="spinner"></div> Loading...</div>
+          <div class="table-container" id="subj-table-wrap" style="display:none;">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Code</th><th>Subject Name</th><th>Dept</th>
+                  <th>Sem</th><th>Type</th><th>Credits</th><th>Max</th><th>Pass</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="subj-tbody"></tbody>
+            </table>
+          </div>
+          <div id="subj-empty" class="empty-state" style="display:none;">
+            <div class="empty-icon">📚</div>
+            <h3>No subjects found</h3>
+            <p>Add subjects to get started</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay hidden" id="subj-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="subj-modal-title">Add Subject</h3>
+        <button class="btn-close" onclick="closeModal('subj-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="subj-form">
+          <input type="hidden" id="edit-subj-id" />
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="subj-code">Subject Code *</label>
+              <input type="text" id="subj-code" class="form-control" placeholder="e.g. CS401" required />
+            </div>
+            <div class="form-group">
+              <label for="subj-type">Type</label>
+              <select id="subj-type" class="form-control">
+                <option value="Theory">Theory</option>
+                <option value="Practical">Practical</option>
+                <option value="Lab">Lab</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subj-name">Subject Name *</label>
+            <input type="text" id="subj-name" class="form-control" placeholder="e.g. Data Structures" required />
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label for="subj-dept">Department *</label>
+              <select id="subj-dept" class="form-control" required>
+                <option value="">Select</option>
+                <option value="CSE">CSE</option><option value="ECE">ECE</option>
+                <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+                <option value="EEE">EEE</option><option value="IT">IT</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="subj-sem">Semester *</label>
+              <select id="subj-sem" class="form-control" required>
+                <option value="">Select</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-group">
+              <label for="subj-credits">Credits</label>
+              <input type="number" id="subj-credits" class="form-control" value="3" min="1" max="6" />
+            </div>
+            <div class="form-group">
+              <label for="subj-max">Max Marks</label>
+              <input type="number" id="subj-max" class="form-control" value="100" min="10" />
+            </div>
+            <div class="form-group">
+              <label for="subj-pass">Pass Marks</label>
+              <input type="number" id="subj-pass" class="form-control" value="40" min="1" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('subj-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-subj-btn" onclick="saveSubject()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="confirm-modal">
+    <div class="modal modal-sm">
+      <div class="modal-header"><h3>Confirm Delete</h3><button class="btn-close" onclick="closeModal('confirm-modal')">✕</button></div>
+      <div class="modal-body"><p id="confirm-msg"></p></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="confirm-no">Cancel</button>
+        <button class="btn btn-danger" id="confirm-yes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin/app.js"></script>
+  <script src="/js/admin/subjects.js"></script>
+</body>
+</html>

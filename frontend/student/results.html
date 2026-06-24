@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Results & Academic History — SRMS Student Portal</title>
+  <meta name="description" content="View your academic results, CGPA trend analysis, and download official marksheets." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body { background: var(--bg-primary); }
+
+    .student-wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    /* Top bar */
+    .student-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .student-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; }
+    .student-logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+
+    /* Student profile card */
+    .profile-card {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .profile-avatar {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+      border: 3px solid rgba(59,130,246,.3);
+    }
+    .profile-info { flex: 1; z-index: 1; }
+    .profile-name { font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .profile-meta { color: rgba(255,255,255,.6); font-size: .875rem; margin-top: 4px; }
+    .profile-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .profile-badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 3px 12px; font-size: .75rem; color: rgba(255,255,255,.8); }
+
+    /* CGPA summary cards */
+    .cgpa-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+    /* Layout division for trend chart */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    /* Trend chart box */
+    .chart-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Year/Sem Selector tabs */
+    .history-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .history-tab {
+      padding: 8px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: .85rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+    .history-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .history-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* Results table */
+    .result-subject-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 80px 80px 90px 70px 70px 90px;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    .result-subject-row:hover { background: var(--bg-hover); }
+    .result-subject-row.header { background: var(--bg-hover); font-size: .72rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .07em; }
+
+    /* Semester Summary List */
+    .sem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .sem-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .sem-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--accent);
+    }
+    .sem-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .sem-title { font-weight: 800; font-size: 1.1rem; }
+    .sem-stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); }
+
+    .download-btn {
+      background: var(--accent);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      z-index: 1;
+    }
+    .download-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+
+    @media (max-width: 900px) {
+      .dashboard-layout { grid-template-columns: 1fr; }
+      .sem-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 750px) {
+      .cgpa-summary { grid-template-columns: repeat(2, 1fr); }
+      .result-subject-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .result-subject-row.header { display: none; }
+      .profile-card { flex-direction: column; text-align: center; }
+      .profile-badges { justify-content: center; }
+      .profile-avatar { margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Topbar -->
+  <div class="student-topbar">
+    <div class="student-logo">
+      <div class="student-logo-icon">🎓</div>
+      SRMS Student Portal
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="student-wrapper">
+    <!-- Student Profile Card -->
+    <div class="profile-card" id="profile-card">
+      <div class="profile-avatar" id="profile-avatar">?</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profile-name">Loading Profile...</div>
+        <div class="profile-meta" id="profile-meta"></div>
+        <div class="profile-badges" id="profile-badges"></div>
+      </div>
+      <div style="flex-shrink:0;">
+        <button class="download-btn" id="download-transcript-btn" onclick="downloadTranscript()">📜 Download Full Transcript</button>
+      </div>
+    </div>
+
+    <!-- CGPA Summary & Trend Chart Layout -->
+    <div class="dashboard-layout">
+      <!-- CGPA Metrics -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="stat-card" style="flex:1; padding: 24px;">
+          <div class="stat-icon" style="font-size:2.5rem;">🎯</div>
+          <div>
+            <div class="stat-value" id="s-cgpa" style="font-size:2.8rem;">—</div>
+            <div class="stat-label">Cumulative GPA (CGPA)</div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div>
+              <div class="stat-value" id="s-pass">—</div>
+              <div class="stat-label">Passed Credits</div>
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-icon">❌</div>
+            <div>
+              <div class="stat-value" id="s-fail">—</div>
+              <div class="stat-label">Failed Credits</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend Chart -->
+      <div class="chart-card">
+        <h3 style="margin: 0 0 10px 0;">📈 GPA Trend Analysis</h3>
+        <div id="trend-chart-container" style="flex:1; display:flex; align-items:center; justify-content:center;">
+          <svg id="trend-svg" width="100%" height="160" style="overflow:visible;"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tabs -->
+    <div class="history-tabs" id="history-tabs">
+      <div class="history-tab active" id="tab-all" onclick="selectTab('all')">📚 All Semesters</div>
+    </div>
+
+    <!-- Tab Contents -->
+    
+    <!-- All Semesters View -->
+    <div id="content-all" class="tab-content">
+      <div class="sem-grid" id="sem-grid-container"></div>
+    </div>
+
+    <!-- Semester Detail View -->
+    <div id="content-semester" class="tab-content card" style="display:none; padding:0; overflow:hidden;">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <h3 id="semester-detail-title" style="margin:0;">Semester Results</h3>
+          <p class="text-sm text-muted" id="semester-detail-subtitle" style="margin:4px 0 0 0;"></p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span id="sem-overall-badge"></span>
+          <button class="btn btn-secondary btn-sm" id="download-sem-btn">📄 Download Semester PDF</button>
+        </div>
+      </div>
+      
+      <div class="result-subject-row header">
+        <div>Subject Code</div>
+        <div>Subject Title</div>
+        <div style="text-align:center;">Internal</div>
+        <div style="text-align:center;">External</div>
+        <div style="text-align:center;">Total Marks</div>
+        <div style="text-align:center;">Grade</div>
+        <div style="text-align:center;">Points</div>
+        <div style="text-align:center;">Status</div>
+      </div>
+      <div id="results-rows"></div>
+    </div>
+  </div>
+
+  <script>
+    // Authentication
+    const token = localStorage.getItem('srms_token');
+    const user  = JSON.parse(localStorage.getItem('srms_user') || 'null');
+
+    if (!token || !user) {
+      window.location.href = '/index.html';
+    }
+
+    const studentId = user?.studentId || user?.id;
+    let fullHistory = [];
+    let semestersData = {};
+
+    function logout() {
+      localStorage.removeItem('srms_token');
+      localStorage.removeItem('srms_user');
+      window.location.href = '/index.html';
+    }
+
+    async function apiFetch(path) {
+      const res = await fetch('/api' + path, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) { logout(); return null; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error fetching data');
+      return data;
+    }
+
+    function showToast(msg, type = 'info') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const tc = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+      tc.appendChild(t);
+      setTimeout(() => {
+        t.style.animation = 'slideOut .3s ease forwards';
+        setTimeout(() => t.remove(), 300);
+      }, 3500);
+    }
+
+    // Initialize Profile and Load Data
+    async function init() {
+      try {
+        const student = await apiFetch(`/students/${studentId}`);
+        if (!student) return;
+
+        // Render Profile Card
+        const initials = student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('profile-avatar').textContent = initials;
+        document.getElementById('profile-name').textContent = student.name;
+        document.getElementById('profile-meta').textContent = `${student.roll_number}  ·  Register No: ${student.register_number}  ·  ${student.email || ''}`;
+
+        const badges = [student.department, `Class: ${student.class}`, `Current Semester: ${student.semester}`, `Batch: ${student.batch}`];
+        document.getElementById('profile-badges').innerHTML = badges.map(b => `<span class="profile-badge">${b}</span>`).join('');
+
+        // Fetch Complete Academic History (All results for this student)
+        const historyResponse = await apiFetch(`/results/student/${studentId}`);
+        if (!historyResponse) return;
+
+        fullHistory = historyResponse.results || [];
+        
+        // Calculate CGPA across all semesters
+        document.getElementById('s-cgpa').textContent = historyResponse.cgpa !== null ? historyResponse.cgpa.toFixed(2) : '—';
+        
+        const passedCredits = fullHistory.filter(r => r.status === 'PASS').reduce((s, r) => s + r.credits, 0);
+        const failedCredits = fullHistory.filter(r => r.status === 'FAIL').reduce((s, r) => s + r.credits, 0);
+        document.getElementById('s-pass').textContent = passedCredits;
+        document.getElementById('s-fail').textContent = failedCredits;
+
+        // Process Semesters
+        processSemestersData();
+
+        // Render Tabs
+        renderHistoryTabs();
+
+        // Render Dashboard Overview
+        renderAllSemestersOverview();
+
+        // Render GPA Trend Chart (SVG)
+        renderGPATrendChart();
+
+      } catch (err) {
+        showToast('Error loading results: ' + err.message, 'error');
+      }
+    }
+
+    // Process all results and group by Semester
+    function processSemestersData() {
+      semestersData = {};
+      
+      fullHistory.forEach(r => {
+        const sem = r.semester;
+        if (!semestersData[sem]) {
+          semestersData[sem] = {
+            semester: sem,
+            academic_year: r.academic_year,
+            results: [],
+            totalCredits: 0,
+            earnedCredits: 0,
+            weightedGP: 0,
+            hasFail: false
+          };
+        }
+
+        semestersData[sem].results.push(r);
+        semestersData[sem].totalCredits += r.credits;
+        
+        if (r.status === 'PASS') {
+          semestersData[sem].earnedCredits += r.credits;
+          semestersData[sem].weightedGP += (r.grade_point * r.credits);
+        } else if (r.status === 'FAIL') {
+          semestersData[sem].hasFail = true;
+        }
+      });
+
+      // Calculate SGPA for each semester
+      for (const sem in semestersData) {
+        const s = semestersData[sem];
+        s.sgpa = s.earnedCredits > 0 ? (s.weightedGP / s.earnedCredits) : 0;
+      }
+    }
+
+    // Render Semester navigation tabs
+    function renderHistoryTabs() {
+      const tabsContainer = document.getElementById('history-tabs');
+      
+      // Keep "All Semesters" tab and append each semester tab
+      const semKeys = Object.keys(semestersData).sort((a, b) => Number(a) - Number(b));
+      
+      let tabsHtml = `<div class="history-tab active" id="tab-all" onclick="selectTab('all')">📚 All Semesters</div>`;
+      
+      semKeys.forEach(sem => {
+        tabsHtml += `<div class="history-tab" id="tab-sem-${sem}" onclick="selectTab('${sem}')">S${sem} Results</div>`;
+      });
+
+      tabsContainer.innerHTML = tabsHtml;
+    }
+
+    // Handle tab selection
+    function selectTab(tab) {
+      document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+      
+      if (tab === 'all') {
+        document.getElementById('tab-all').classList.add('active');
+        document.getElementById('content-all').style.display = 'block';
+        document.getElementById('content-semester').style.display = 'none';
+      } else {
+        document.getElementById(`tab-sem-${tab}`).classList.add('active');
+        document.getElementById('content-all').style.display = 'none';
+        document.getElementById('content-semester').style.display = 'block';
+        renderSemesterDetails(tab);
+      }
+    }
+
+    // Render Overview list of all semesters
+    function renderAllSemestersOverview() {
+      const container = document.getElementById('sem-grid-container');
+      const semKeys = Object.keys(semestersData).sort((a, b) => Number(a) - Number(b));
+
+      if (semKeys.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: span 2;">
+            <div class="empty-icon">📋</div>
+            <h3>No results registered</h3>
+            <p>Your results have not been recorded in the database yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = semKeys.map(sem => {
+        const s = semestersData[sem];
+        const statusBadge = s.hasFail 
+          ? '<span class="badge badge-fail">Has Failures</span>'
+          : '<span class="badge badge-pass">Passed</span>';
+
+        return `
+          <div class="sem-card">
+            <div class="sem-card-header">
+              <span class="sem-title">Semester ${sem}</span>
+              ${statusBadge}
+            </div>
+            <div class="sem-stats">
+              <span>Academic Year: <strong>${s.academic_year}</strong></span>
+              <span>SGPA: <strong style="color:var(--accent); font-size:1.1rem;">${s.sgpa.toFixed(2)}</strong></span>
+            </div>
+            <div class="sem-stats">
+              <span>Credits Registered: <strong>${s.totalCredits}</strong></span>
+              <span>Credits Earned: <strong>${s.earnedCredits}</strong></span>
+            </div>
+            <div style="margin-top: 8px; display:flex; gap:10px;">
+              <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="selectTab('${sem}')">🔍 View Details</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadSemesterPDF('${sem}', '${s.academic_year}')">📄 PDF</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render details for a specific semester
+    function renderSemesterDetails(semNum) {
+      const s = semestersData[semNum];
+      if (!s) return;
+
+      document.getElementById('semester-detail-title').textContent = `Semester ${semNum} Result Report`;
+      document.getElementById('semester-detail-subtitle').textContent = `Academic Year: ${s.academic_year}  ·  SGPA: ${s.sgpa.toFixed(2)}  ·  Earned Credits: ${s.earnedCredits} / ${s.totalCredits}`;
+
+      document.getElementById('sem-overall-badge').innerHTML = s.hasFail
+        ? '<span class="badge badge-fail">⚠️ Failures Logged</span>'
+        : '<span class="badge badge-pass">🏆 Cleared</span>';
+
+      // Setup PDF download button link
+      const pdfBtn = document.getElementById('download-sem-btn');
+      pdfBtn.onclick = () => downloadSemesterPDF(semNum, s.academic_year);
+
+      // Render Rows
+      const gradeMap = { 'O':'grade-O','A+':'grade-Ap','A':'grade-A','B+':'grade-Bp','B':'grade-B','C':'grade-C','F':'grade-F' };
+      
+      document.getElementById('results-rows').innerHTML = s.results.map(r => `
+        <div class="result-subject-row">
+          <div><code style="font-size:.78rem; background:var(--bg-hover); padding:2px 6px; border-radius:4px;">${r.subject_code}</code></div>
+          <div>
+            <div style="font-weight:600; font-size:.875rem;">${r.subject_name}</div>
+            <div class="text-xs text-muted">${r.subject_type} · ${r.credits} credits</div>
+          </div>
+          <div style="text-align:center; color:var(--text-secondary);">${r.internal_marks}</div>
+          <div style="text-align:center; color:var(--text-secondary);">${r.external_marks}</div>
+          <div style="text-align:center; font-weight:700;">${r.total_marks}</div>
+          <div style="text-align:center;"><span class="badge ${gradeMap[r.grade] || ''}">${r.grade}</span></div>
+          <div style="text-align:center; font-weight:600; color:var(--accent);">${r.grade_point}</div>
+          <div style="text-align:center;">
+            <span class="badge ${r.status === 'PASS' ? 'badge-pass' : r.status === 'ABSENT' ? 'badge-absent' : 'badge-fail'}">${r.status}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render SGPA SVG line chart
+    function renderGPATrendChart() {
+      const svg = document.getElementById('trend-svg');
+      if (!svg) return;
+
+      const semKeys = Object.keys(semestersData).sort((a, b) => Number(a) - Number(b));
+      if (semKeys.length === 0) {
+        svg.innerHTML = `<text x="50%" y="50%" fill="var(--text-secondary)" text-anchor="middle" font-size="12">No academic history trend</text>`;
+        return;
+      }
+
+      const w = svg.clientWidth || 400;
+      const h = 160;
+      const padL = 35;
+      const padR = 25;
+      const padT = 20;
+      const padB = 25;
+
+      const chartW = w - padL - padR;
+      const chartH = h - padT - padB;
+
+      // Draw grid lines (GP 0 to 10)
+      let gridLines = '';
+      for (let g = 0; g <= 4; g++) {
+        const yVal = padT + chartH - (g / 4) * chartH;
+        const gp = (g / 4) * 10;
+        gridLines += `<line x1="${padL}" y1="${yVal}" x2="${w - padR}" y2="${yVal}" stroke="var(--border-color)" stroke-width="0.5" stroke-dasharray="3 3" />`;
+        gridLines += `<text x="${padL - 8}" y="${yVal + 3}" fill="var(--text-muted)" font-size="9" text-anchor="end">${gp}</text>`;
+      }
+
+      // Plot Points
+      const points = semKeys.map((sem, idx) => {
+        const val = semestersData[sem].sgpa;
+        const x = padL + (idx / Math.max(1, semKeys.length - 1)) * chartW;
+        const y = padT + chartH - (val / 10) * chartH;
+        return { x, y, label: `S${sem}`, val: val.toFixed(2) };
+      });
+
+      // Line Path
+      let pathD = `M ${points[0].x} ${points[0].y}`;
+      let areaD = `M ${points[0].x} ${padT + chartH} L ${points[0].x} ${points[0].y}`;
+      
+      for (let i = 1; i < points.length; i++) {
+        pathD += ` L ${points[i].x} ${points[i].y}`;
+        areaD += ` L ${points[i].x} ${points[i].y}`;
+      }
+      areaD += ` L ${points[points.length - 1].x} ${padT + chartH} Z`;
+
+      let elements = `
+        <defs>
+          <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        ${gridLines}
+        <path d="${areaD}" fill="url(#chartGrad)" />
+        <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2.5" />
+      `;
+
+      points.forEach(p => {
+        elements += `
+          <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--background)" stroke="var(--accent)" stroke-width="2" />
+          <text x="${p.x}" y="${p.y - 8}" fill="var(--text-primary)" font-size="9" font-weight="bold" text-anchor="middle">${p.val}</text>
+          <text x="${p.x}" y="${h - 6}" fill="var(--text-secondary)" font-size="9.5" font-weight="bold" text-anchor="middle">${p.label}</text>
+        `;
+      });
+
+      svg.innerHTML = elements;
+    }
+
+    // Download Full Academic Transcript PDF
+    async function downloadTranscript() {
+      const btn = document.getElementById('download-transcript-btn');
+      btn.disabled = true;
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,.3); border-top-color:white;"></span> Generating...';
+
+      try {
+        const url = `/api/pdf/marksheet/${studentId}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) { showToast('Failed to generate full transcript PDF.', 'error'); return; }
+
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `academic_transcript_${studentId}.pdf`;
+        link.click();
+        showToast('Full academic transcript downloaded successfully!', 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+
+    // Download Specific Semester Marksheet PDF
+    async function downloadSemesterPDF(semNum, academicYear) {
+      showToast('Generating semester marksheet...', 'info');
+      try {
+        const url = `/api/pdf/marksheet/${studentId}?academic_year=${academicYear}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) { showToast('Failed to generate PDF.', 'error'); return; }
+
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `marksheet_${studentId}_sem${semNum}_${academicYear}.pdf`;
+        link.click();
+        showToast(`Semester ${semNum} marksheet downloaded successfully!`, 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
