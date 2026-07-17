@@ -92,11 +92,21 @@ async function downloadPDF(e, studentId, year) {
     if (!res.ok) { showToast('PDF generation failed.', 'error'); return; }
 
     const blob = await res.blob();
+    const fileURL = URL.createObjectURL(blob);
+
+    // Open PDF in a new tab for inline viewing
+    window.open(fileURL, '_blank');
+
+    // Programmatically trigger download
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = fileURL;
     link.download = `marksheet_${studentId}_${year}.pdf`;
+    document.body.appendChild(link);
     link.click();
-    showToast('PDF downloaded!', 'success');
+    document.body.removeChild(link);
+
+    showToast('PDF opened and downloaded successfully!', 'success');
+    setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
   } catch (err) {
     showToast('Error: ' + err.message, 'error');
   }

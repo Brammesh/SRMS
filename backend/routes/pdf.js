@@ -104,7 +104,7 @@ router.get('/marksheet/:studentId', authenticate, (req, res) => {
   const doc = new PDFDocument({ margin: 40, size: 'A4' });
 
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="marksheet_${student.roll_number}.pdf"`);
+  res.setHeader('Content-Disposition', `inline; filename="marksheet_${student.roll_number}.pdf"`);
   doc.pipe(res);
 
   // Palette definitions

@@ -615,11 +615,21 @@
         if (!res.ok) { showToast('Failed to generate full transcript PDF.', 'error'); return; }
 
         const blob = await res.blob();
+        const fileURL = URL.createObjectURL(blob);
+        
+        // Open PDF in a new tab for inline viewing
+        window.open(fileURL, '_blank');
+
+        // Programmatically trigger download
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        link.href = fileURL;
         link.download = `academic_transcript_${studentId}.pdf`;
+        document.body.appendChild(link);
         link.click();
-        showToast('Full academic transcript downloaded successfully!', 'success');
+        document.body.removeChild(link);
+
+        showToast('Full academic transcript opened and downloaded successfully!', 'success');
+        setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
       } finally {
@@ -637,11 +647,21 @@
         if (!res.ok) { showToast('Failed to generate PDF.', 'error'); return; }
 
         const blob = await res.blob();
+        const fileURL = URL.createObjectURL(blob);
+
+        // Open PDF in a new tab for inline viewing
+        window.open(fileURL, '_blank');
+
+        // Programmatically trigger download
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        link.href = fileURL;
         link.download = `marksheet_${studentId}_sem${semNum}_${academicYear}.pdf`;
+        document.body.appendChild(link);
         link.click();
-        showToast(`Semester ${semNum} marksheet downloaded successfully!`, 'success');
+        document.body.removeChild(link);
+
+        showToast(`Semester ${semNum} marksheet opened and downloaded successfully!`, 'success');
+        setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
       }
